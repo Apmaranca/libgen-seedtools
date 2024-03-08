@@ -125,3 +125,79 @@ However, if you run `main_script.py` with `python main_script.py`, the `helper_m
 
 This pattern allows a script to be designed for dual use: as a module that can be imported and used in other scripts without side effects (like running test code or modifying data) or as a standalone script that executes some specific code (like tests or a main application routine). It provides a clean and intuitive way to structure code for reusability and direct execution.
 
+To create a CLI application in Python that initializes both the Torrent (Transmission) and IPFS daemons with options to skip either daemon's initialization, you can use the `click` library. This library simplifies building command-line interfaces with various options and arguments. The main function will handle command-line arguments to determine which daemons to start and provide feedback on the actions taken.
+
+First, ensure you have `click` installed in your environment. You can install it via pip if you haven't already:
+
+```sh
+pip install click
+```
+
+Below is a sample code for the CLI app, including the use of click to parse command-line arguments for controlling the initialization of the Transmission and IPFS daemons:
+
+```python
+import click
+import subprocess
+import atexit
+
+def start_transmission_daemon():
+    try:
+        subprocess.run(["transmission-daemon"], check=True)
+        print("Transmission daemon started successfully.")
+    except subprocess.CalledProcessError:
+        print("Failed to start Transmission daemon. It may already be running.")
+
+def stop_transmission_daemon():
+    try:
+        subprocess.run(["transmission-remote", "--exit"], check=True)
+        print("Transmission daemon stopped successfully.")
+    except subprocess.CalledProcessError:
+        print("Failed to stop Transmission daemon.")
+
+def start_ipfs_daemon():
+    try:
+        subprocess.run(["ipfs", "daemon"], check=True)
+        print("IPFS daemon started successfully.")
+    except subprocess.CalledProcessError:
+        print("Failed to start IPFS daemon. It may already be running.")
+
+def stop_ipfs_daemon():
+    # This is optional as IPFS daemon usually is terminated along with the terminal session
+    pass
+
+@click.command()
+@click.option('--nt', is_flag=True, help='Do not initialize the torrent daemon.')
+@click.option('--ni', is_flag=True, help='Do not initialize the IPFS daemon.')
+def main(nt, ni):
+    if not nt:
+        start_transmission_daemon()
+        atexit.register(stop_transmission_daemon)
+    else:
+        print("Skipping Transmission daemon initialization.")
+
+    if not ni:
+        start_ipfs_daemon()
+        # IPFS daemon stopping logic can be handled differently as per your requirements
+    else:
+        print("Skipping IPFS daemon initialization.")
+
+    # Your application logic here
+    print("CLI app is running. Press Ctrl+C to exit.")
+
+if __name__ == "__main__":
+    main()
+```
+
+### Notes:
+
+- This code assumes you have `transmission-daemon`, `transmission-remote`, and `ipfs` commands available and correctly configured in your system's PATH. Ensure these daemons are installed and configured before running this script.
+
+- The `start_transmission_daemon` and `start_ipfs_daemon` functions attempt to start the respective daemons and print a message indicating the outcome. Error handling is basic and may need adjustments based on specific requirements or behavior observed in your environment.
+
+- The `@click.command()` decorator transforms the `main` function into a command-line interface command, with `--nt` and `--ni` options added via the `@click.option` decorators. These options control whether the Transmission or IPFS daemons should be started.
+
+- The `atexit.register` function is used to ensure cleanup actions (like stopping the Transmission daemon) are taken when the script exits normally. Note that abrupt terminations might not trigger these cleanup actions.
+
+- This script provides a basic framework and may need adjustments to fit specific requirements, error handling, or daemon management strategies in different environments.
+
+By adapting and expanding upon this template, you can build a robust CLI application tailored to your needs, integrating Transmission and IPFS daemon management with your application's logic.
