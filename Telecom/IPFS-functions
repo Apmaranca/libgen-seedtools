@@ -1,0 +1,82 @@
+Querying the IPFS network for information using HTTP requests involves interacting with the IPFS HTTP API. The IPFS HTTP API provides a wide range of endpoints that allow you to perform various operations, such as adding or retrieving files, pinning content, managing the IPFS node, and querying network information. By using Python's `requests` library, you can easily make HTTP requests to these API endpoints.
+
+Here are some of the possibilities for querying the IPFS network for information using HTTP requests:
+
+### 1. Fetching File Contents
+
+You can retrieve the contents of a file stored on IPFS by its CID (Content Identifier).
+
+```python
+import requests
+
+cid = 'Qm...yourCIDhere...'
+url = f'http://localhost:5001/api/v0/cat?arg={cid}'
+response = requests.post(url)
+file_contents = response.content  # This is the content of the file
+```
+
+### 2. Getting File or Directory Information
+
+To get information about a file or directory (such as its size), you can use the `files/stat` endpoint.
+
+```python
+cid = 'Qm...yourCIDhere...'
+url = f'http://localhost:5001/api/v0/files/stat?arg=/{cid}'
+response = requests.post(url)
+info = response.json()
+print(info)  # Displays information about the file/directory
+```
+
+### 3. Listing Directory Contents
+
+If you have a directory CID, you can list its contents using the `ls` endpoint.
+
+```python
+cid = 'Qm...yourDirectoryCIDhere...'
+url = f'http://localhost:5001/api/v0/ls?arg={cid}'
+response = requests.post(url)
+directory_contents = response.json()
+print(directory_contents)  # Shows the contents of the directory
+```
+
+### 4. Adding Files to IPFS
+
+You can add files to IPFS by sending a file with a POST request to the `add` endpoint. Note that for this, you might need to use the `files` parameter in the `requests` library to handle file upload correctly.
+
+```python
+files = {'file': ('filename.txt', open('filename.txt', 'rb'))}
+response = requests.post('http://localhost:5001/api/v0/add', files=files)
+added_file_info = response.json()
+print(added_file_info)  # Information about the added file
+```
+
+### 5. Pinning Content
+
+Pinning content on your node ensures it's not garbage collected and remains retrievable.
+
+```python
+cid = 'Qm...yourCIDhere...'
+url = f'http://localhost:5001/api/v0/pin/add?arg={cid}'
+response = requests.post(url)
+pin_result = response.json()
+print(pin_result)  # Information about the pin operation
+```
+
+### 6. Querying Node Information
+
+You can query information about your IPFS node, such as its ID, addresses, and more.
+
+```python
+url = 'http://localhost:5001/api/v0/id'
+response = requests.post(url)
+node_info = response.json()
+print(node_info)  # Displays information about your IPFS node
+```
+
+### Considerations
+
+- **IPFS Daemon**: To use the IPFS HTTP API, the IPFS daemon must be running (`ipfs daemon`) and listening for HTTP requests, usually on `localhost:5001`.
+- **API Version**: Ensure that your IPFS installation is up to date, as the API and its capabilities may change between versions.
+- **Security**: When making HTTP requests, especially in a production environment, consider the security implications. For sensitive operations, ensure that your API is not exposed publicly or is properly secured.
+
+Using Python's `requests` library with the IPFS HTTP API provides a powerful and flexible way to interact with the IPFS network, allowing you to build a wide range of applications that leverage decentralized storage.
